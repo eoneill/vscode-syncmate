@@ -4,7 +4,10 @@ A simple rsync extensions for VSCode. Inspired by [`SyncMate` for TextMate](http
 
 ## Features
 
-SyncMate will `rsync` a file on save.
+- Sync a file on save
+- Sync all open files
+- Sync a directory
+- Sync the entire project workspace
 
 ## Settings
 
