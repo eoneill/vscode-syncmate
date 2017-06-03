@@ -1,84 +1,94 @@
 const exec = require('child_process').exec;
+const p = require('./utils/pluralize');
 
-function getSyncCommand(files) {
-  const sources = files.map((file) => {
-    return `"${file}"`;
+function getSyncCommand(sources) {
+  sources = sources.map((source) => {
+    return `"${source}"`;
   }).join(' ');
   return [
     `export SSH_AUTH_SOCK=$(find /tmp/*launch*/Listeners -user "${this.user}" -type s | head -1)`,
-    `rsync -v -zarR ${this.flags} -e "ssh -p ${this.port}" ${sources} "${this.user}@${this.host}:${this.dest}"`
-  ].join(' && ');
+    `rsync -zarR ${this.verbose ? '-v': ''} ${this.flags} ${this.exclude} -e "ssh -p ${this.port}" ${sources} "${this.user}@${this.host}:${this.dest}"`
+  ].join('; ');
 }
 
-function SyncMate(options, cwd, outputChannel) {
+function SyncMate(options, cwd, log, excludes) {
   if (!options.host) {
-    throw new Error('no host');
+    throw new Error('No host was provided');
   }
 
-  Object.assign(this, {
-    port: 22,
-    user: '$USER',
-    host: null,
-    dest: '/',
-    flags: '',
-    verbose: false
-  }, options);
+  Object.assign(this, options);
 
   this.cwd = cwd || process.cwd();
-
-  this.log = function () {};
-  if (this.verbose && outputChannel) {
-    this.log = outputChannel.appendLine.bind(outputChannel);
-  }
+  this.log = log;
 
   this.inProgress = 0;
   this.tasks = [];
+
+  // if no destination was provided...
+  if (!this.dest) {
+    // assume cwd on remote machine
+    this.dest = cwd;
+  }
+
+  if (this.exclude) {
+    if (typeof this.exclude === 'object') {
+      this.exclude = Object.assign({}, excludes, this.exclude);
+    } else {
+      this.exclude = excludes;
+    }
+    this.exclude = Object.keys(this.exclude).reduce((flags, key) => {
+      if (this.exclude[key]) {
+        flags.push(`--exclude="${key}"`);
+      }
+      return flags;
+    }, []).join(' ');
+  } else {
+    this.exclude = '';
+  }
 }
 
-SyncMate.prototype.sync = function(files) {
-  files = [].concat(files);
-  this.log('Syncing files...');
-  files.forEach((file) => {
-    this.log(` - ${file}`);
+SyncMate.prototype.sync = function(sources) {
+  this.log.info(`Syncing ${p(sources)}...`);
+  sources.forEach((source) => {
+    this.log.info(`  ${sources}`);
   });
-  const command = getSyncCommand.call(this, files);
+  const command = getSyncCommand.call(this, sources);
   this.inProgress++;
   const promise = new Promise((resolve, reject) => {
-    this.log('Executing rsync command...');
-    this.log(`  ${command}`);
+    this.log.info('Executing rsync command...');
+    this.log.info(`  ${command}`);
     exec(command, {
       cwd: this.cwd
     }, (error, stdout, stderr) => {
       this.inProgress--;
-      this.log(`[stdout]`);
-      this.log(stdout || '');
-      this.log(`[stderr]`);
-      this.log(stderr || '');
+      this.log.info(stdout);
+      this.log.error(stderr);
       if (error) {
-        this.log(error);
+        this.log.error(error.message);
         reject(error);
       } else {
-        this.log('SUCCESS!');
+        this.log.info('SUCCESS!');
         resolve();
       }
     });
   });
 
   this.tasks.push(promise);
+  this.done();
   return promise;
 };
 
 SyncMate.prototype.done = function() {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     // if nothing in progress, we're done...
     if (!this.inProgress) {
       resolve();
+      this.tasks = [];
     } else {
-      const plural = this.inProgress > 1 ? 's' : '';
-      this.log(`Waiting for ${this.inProgress} task${plural} to complete`);
+      this.log.info(`Waiting for ${p(this.inProgress, 'task')} to complete`);
       const retry = () => {
         // try again...
-        this.done().then(resolve);
+        this.done().then(resolve, reject);
       };
       // when all the known tasks complete...
       Promise.all(this.tasks).then(retry).catch(retry);
