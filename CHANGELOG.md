@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.0.7
+
+- Add `onInit` option
+
 ## 0.0.6
 
 - Fix Project Syncing

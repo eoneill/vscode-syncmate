@@ -215,6 +215,11 @@ exports.activate = function activate(context) {
       vscode.workspace.onDidSaveTextDocument(syncDocuments, this, context.subscriptions);
     }
 
+    if (config.onInit) {
+      log.info("auto-syncing on initialization...");
+      syncDirectory();
+    }
+
     // syncOpenFiles
     context.subscriptions.push(vscode.commands.registerCommand('syncmate.syncOpenFiles', () => {
       // TODO: this doesn't seem to always grab _all_ "open" files

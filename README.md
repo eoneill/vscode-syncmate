@@ -4,10 +4,12 @@ A simple rsync extensions for VSCode. Inspired by [`SyncMate` for TextMate](http
 
 ## Features
 
-- Sync a file on save
+- Sync individual file on save
 - Sync all open files
 - Sync a directory
 - Sync the entire project workspace
+- Sync files on change via a filesystem watcher
+- Sync project workspace on open
 
 ## Settings
 
@@ -25,6 +27,7 @@ A simple rsync extensions for VSCode. Inspired by [`SyncMate` for TextMate](http
 | `syncmate.quiet` | If `false`, failures are displayed in an error banner. If `true`, failures are only shown in the status bar. | `false` |
 | `syncmate.dirty` | Whether or not to sync dirty (unsaved) files | `false` |
 | `syncmate.exclude` | Files to exclude. If `true`, defaults to `files.exclude`. If `false`, no excludes (other than specified via `syncmate.flags`). If an `Object` is provided, value is merged with `files.exclude` | `true` |
+| `syncmate.onInit` | `Whether or not to sync the project when initially opened` | `false` |
 
 ## Commands
 

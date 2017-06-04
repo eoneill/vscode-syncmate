@@ -89,6 +89,11 @@
           ],
           "default": true,
           "description": "Files to exclude. If true, defaults to `files.exclude`"
+        },
+        "syncmate.onInit": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether or not to sync the project when initially opened"
         }
       }
     },
