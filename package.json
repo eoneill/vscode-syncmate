@@ -2,7 +2,7 @@
     "name": "syncmate",
     "displayName": "SyncMate",
     "description": "A simple rsync extension",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "publisher": "eugeneoneill",
     "license": "MIT",
     "engines": {
@@ -35,7 +35,10 @@
                     "description": "Whether or not to auto-sync on file save"
                 },
                 "syncmate.watch": {
-                    "type": ["boolean", "string"],
+                    "type": [
+                        "boolean",
+                        "string"
+                    ],
                     "default": true,
                     "description": "Whether or not to watch for changes to sync. Optionally, a string can provide the glob pattern to watch"
                 },
