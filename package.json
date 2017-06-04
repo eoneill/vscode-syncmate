@@ -1,122 +1,122 @@
 {
-    "name": "syncmate",
-    "displayName": "SyncMate",
-    "description": "A simple rsync extension",
-    "version": "0.0.5",
-    "publisher": "eugeneoneill",
-    "license": "MIT",
-    "engines": {
-        "vscode": "^1.12.0"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/eoneill/vscode-syncmate.git"
-    },
-    "categories": [
-        "Other"
-    ],
-    "activationEvents": [
-        "*"
-    ],
-    "main": "./extension",
-    "contributes": {
-        "configuration": {
-            "type": "object",
-            "title": "SyncMate configuration",
-            "properties": {
-                "syncmate.enabled": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Whether or not this extension is enabled"
-                },
-                "syncmate.onSave": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Whether or not to auto-sync on file save"
-                },
-                "syncmate.watch": {
-                    "type": [
-                        "boolean",
-                        "string"
-                    ],
-                    "default": true,
-                    "description": "Whether or not to watch for changes to sync. Optionally, a string can provide the glob pattern to watch"
-                },
-                "syncmate.host": {
-                    "type": "string",
-                    "default": "localhost",
-                    "description": "The remote host location (hostname or IP)"
-                },
-                "syncmate.dest": {
-                    "type": "string",
-                    "default": "/",
-                    "description": "The destination path on the remote"
-                },
-                "syncmate.user": {
-                    "type": "string",
-                    "default": "$(whoami)",
-                    "description": "The username to rsync with"
-                },
-                "syncmate.port": {
-                    "type": "number",
-                    "default": 22,
-                    "description": "The remote port"
-                },
-                "syncmate.flags": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Additonal rsync flags to pass"
-                },
-                "syncmate.verbose": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Whether or not to log additional details to the `Output` console"
-                },
-                "syncmate.quiet": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Whether or not to show show errors quietly"
-                },
-                "syncmate.dirty": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Whether or not to sync dirty (unsaved) files"
-                },
-                "syncmate.exclude": {
-                    "type": [
-                        "boolean",
-                        "object"
-                    ],
-                    "default": true,
-                    "description": "Files to exclude. If true, defaults to `files.exclude`"
-                }
-            }
+  "name": "syncmate",
+  "displayName": "SyncMate",
+  "description": "A simple rsync extension",
+  "version": "0.0.5",
+  "publisher": "eugeneoneill",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.12.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eoneill/vscode-syncmate.git"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./extension",
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "SyncMate configuration",
+      "properties": {
+        "syncmate.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether or not this extension is enabled"
         },
-        "commands": [
-            {
-                "command": "syncmate.syncOpenFiles",
-                "title": "SyncMate: Sync Open Files"
-            },
-            {
-                "command": "syncmate.syncProject",
-                "title": "SyncMate: Sync Project"
-            },
-            {
-                "command": "syncmate.syncDirectory",
-                "title": "SyncMate: Sync Directory"
-            }
-        ]
+        "syncmate.onSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether or not to auto-sync on file save"
+        },
+        "syncmate.watch": {
+          "type": [
+            "boolean",
+            "string"
+          ],
+          "default": true,
+          "description": "Whether or not to watch for changes to sync. Optionally, a string can provide the glob pattern to watch"
+        },
+        "syncmate.host": {
+          "type": "string",
+          "default": "localhost",
+          "description": "The remote host location (hostname or IP)"
+        },
+        "syncmate.dest": {
+          "type": "string",
+          "default": "/",
+          "description": "The destination path on the remote"
+        },
+        "syncmate.user": {
+          "type": "string",
+          "default": "$(whoami)",
+          "description": "The username to rsync with"
+        },
+        "syncmate.port": {
+          "type": "number",
+          "default": 22,
+          "description": "The remote port"
+        },
+        "syncmate.flags": {
+          "type": "string",
+          "default": "",
+          "description": "Additonal rsync flags to pass"
+        },
+        "syncmate.verbose": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether or not to log additional details to the `Output` console"
+        },
+        "syncmate.quiet": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether or not to show show errors quietly"
+        },
+        "syncmate.dirty": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether or not to sync dirty (unsaved) files"
+        },
+        "syncmate.exclude": {
+          "type": [
+            "boolean",
+            "object"
+          ],
+          "default": true,
+          "description": "Files to exclude. If true, defaults to `files.exclude`"
+        }
+      }
     },
-    "scripts": {
-        "postinstall": "node ./node_modules/vscode/bin/install",
-        "test": "node ./node_modules/vscode/bin/test"
-    },
-    "devDependencies": {
-        "typescript": "^2.0.3",
-        "vscode": "^1.0.0",
-        "mocha": "^2.3.3",
-        "eslint": "^3.6.0",
-        "@types/node": "^6.0.40",
-        "@types/mocha": "^2.2.32"
-    }
+    "commands": [
+      {
+        "command": "syncmate.syncOpenFiles",
+        "title": "SyncMate: Sync Open Files"
+      },
+      {
+        "command": "syncmate.syncProject",
+        "title": "SyncMate: Sync Project"
+      },
+      {
+        "command": "syncmate.syncDirectory",
+        "title": "SyncMate: Sync Directory"
+      }
+    ]
+  },
+  "scripts": {
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "node ./node_modules/vscode/bin/test"
+  },
+  "devDependencies": {
+    "typescript": "^2.0.3",
+    "vscode": "^1.0.0",
+    "mocha": "^2.3.3",
+    "eslint": "^3.6.0",
+    "@types/node": "^6.0.40",
+    "@types/mocha": "^2.2.32"
+  }
 }
