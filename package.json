@@ -34,6 +34,11 @@
                     "default": true,
                     "description": "Whether or not to auto-sync on file save"
                 },
+                "syncmate.watch": {
+                    "type": ["boolean", "string"],
+                    "default": true,
+                    "description": "Whether or not to watch for changes to sync. Optionally, a string can provide the glob pattern to watch"
+                },
                 "syncmate.host": {
                     "type": "string",
                     "default": "localhost",

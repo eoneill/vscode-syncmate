@@ -7,7 +7,7 @@ function getSyncCommand(sources) {
   }).join(' ');
   return [
     `export SSH_AUTH_SOCK=$(find /tmp/*launch*/Listeners -user "${this.user}" -type s | head -1)`,
-    `rsync -zarR ${this.verbose ? '-v': ''} ${this.flags} ${this.exclude} -e "ssh -p ${this.port}" ${sources} "${this.user}@${this.host}:${this.dest}"`
+    `rsync -zarR ${this.verbose ? '-v': ''} ${this.flags} -e "ssh -p ${this.port}" ${sources} "${this.user}@${this.host}:${this.dest}"`
   ].join('; ');
 }
 
@@ -30,20 +30,23 @@ function SyncMate(options, cwd, log, excludes) {
     this.dest = cwd;
   }
 
+  // move excludes to flags
   if (this.exclude) {
-    if (typeof this.exclude === 'object') {
-      this.exclude = Object.assign({}, excludes, this.exclude);
-    } else {
-      this.exclude = excludes;
-    }
-    this.exclude = Object.keys(this.exclude).reduce((flags, key) => {
+    const flags = Object.keys(this.exclude).reduce((excludes, key) => {
       if (this.exclude[key]) {
-        flags.push(`--exclude="${key}"`);
+        excludes.push(key);
+        // exclude nested files
+        // prevents an error when saving a saved file in a directory that should be ignored
+        excludes.push(`${key}/**/*`);
       }
-      return flags;
-    }, []).join(' ');
-  } else {
-    this.exclude = '';
+      return excludes;
+    }, []).map((key) => {
+      return `--exclude="${key}"`;
+    }).join(' ');
+
+    if (flags) {
+      this.flags = `${this.flags} ${flags}`;
+    }
   }
 }
 

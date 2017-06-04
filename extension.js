@@ -4,15 +4,28 @@ const fs = require('fs');
 const SyncMate = require('./SyncMate');
 const Logger = require('./Logger');
 const p = require('./utils/pluralize');
+const throttle = require('./utils/throttle');
+
+let watcher;
 
 exports.activate = function activate(context) {
   // get the syncmate config...
-  const config = vscode.workspace.getConfiguration('syncmate');
+  const config = Object.assign({}, vscode.workspace.getConfiguration('syncmate'));
 
   // if enabled...
   if (config.enabled) {
     // create a logger instance using the output channel
-    const log = new Logger(config.verbose && vscode.window.createOutputChannel('SyncMate'));
+    const log = new Logger(vscode.window.createOutputChannel('SyncMate'), config.verbose);
+
+    // adjust the excludes
+    const excludes = vscode.workspace.getConfiguration('files').exclude;
+    if (config.exclude) {
+      if (typeof config.exclude === 'object') {
+        config.exclude = Object.assign(excludes, config.exclude);
+      } else {
+        config.exclude = excludes;
+      }
+    }
 
     // log our config
     log.info('SyncMate Config...');
@@ -22,11 +35,11 @@ exports.activate = function activate(context) {
     const rootPath = vscode.workspace.rootPath;
 
     // keep track of whether or not things are paused
-    const pausedSources = new Set(); //
+    const pausedSources = new Set();
     let allPaused = false;
 
     // create SyncMate instance
-    const syncMate = new SyncMate(config, rootPath, log, vscode.workspace.getConfiguration('files').exclude);
+    const syncMate = new SyncMate(config, rootPath, log);
 
     // main function for syncing everything via SyncMate instance
     function syncDocuments(documents) {
@@ -90,7 +103,7 @@ exports.activate = function activate(context) {
         return true;
       }).map((document) => {
         // map to relative path
-        return path.relative(rootPath, document.uri.fsPath) || './'; // ./ for syncProject
+        return vscode.workspace.asRelativePath(document.uri.fsPath) || './'; // ./ for syncProject
       });
 
       // no sources? exit
@@ -109,17 +122,31 @@ exports.activate = function activate(context) {
           // update progress status
           progress.report({ message: `syncing ${p(sources)}` });
 
-          // start the sync for the given sources
-          syncMate.sync(sources).then(() => {
-            // sync finished
-            progress.report({ message: `sync completed` });
-          }, () => {
-            // sync failed
-            progress.report({ message: `sync failed` });
-            if (!config.quiet) {
-              vscode.window.showErrorMessage(`Failed to sync all sources`);
-            }
-          });
+          // self-executing closure so we can retry if needed
+          (function trySync() {
+            // start the sync for the given sources
+            syncMate.sync(sources).then(() => {
+              // sync finished
+              progress.report({ message: `sync completed` });
+            }, () => {
+              // sync failed
+              progress.report({ message: `sync failed` });
+              // if we're not in quiet mode...
+              if (!config.quiet) {
+                // let the user know things didn't work
+                // ask them if they want to retry
+                vscode.window.showErrorMessage(`SyncMate failed to sync all sources (see Output). Would you like to retry?`, {
+                  title: 'Retry'
+                }).then((ok) => {
+                  // if yes...
+                  if (ok) {
+                    // try it again
+                    trySync();
+                  }
+                })
+              }
+            });
+          }());
 
           // after all syncs are done...
           syncMate.done().then(() => {
@@ -165,8 +192,33 @@ exports.activate = function activate(context) {
       }
     }
 
-    // bind to onSave event
-    if (config.onSave) {
+    // watch modes...
+    if (config.watch) {
+      // if not a string...
+      if (typeof config.watch !== "string") {
+        config.watch = "**/*"; // watch everything
+      }
+      log.info(`watching ${config.watch}`);
+
+      let updates = [];
+
+      watcher = vscode.workspace.createFileSystemWatcher(config.watch);
+
+      const sync = throttle(function sync(uri) {
+        syncDocuments(updates);
+        updates = [];
+      });
+      function handleFSEvent(uri) {
+        updates.push({
+          uri
+        });
+        sync();
+      }
+
+      // on fs events...
+      watcher.onDidChange(handleFSEvent);
+      watcher.onDidCreate(handleFSEvent);
+    } else if (config.onSave) { // otherwise handle onSave
       vscode.workspace.onDidSaveTextDocument(syncDocuments, this, context.subscriptions);
     }
 
@@ -235,4 +287,7 @@ exports.activate = function activate(context) {
 };
 
 exports.deactivate = function deactivate() {
+  if (watcher) {
+    watcher.dispose();
+  }
 };

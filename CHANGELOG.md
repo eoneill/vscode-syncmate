@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.0.5
+
+Add watch mode.
+
 ## 0.0.2
 
 Add support for syncing Project, Open Files, Directory

@@ -15,6 +15,7 @@ A simple rsync extensions for VSCode. Inspired by [`SyncMate` for TextMate](http
 |---------|-------------|---------|
 | `syncmate.enabled` | Whether or not this extension is enabled | `false` |
 | `syncmate.onSave` | Whether or not to auto-sync on file save | `true` |
+| `syncmate.watch` | Whether or not to watch files. Optionally, set a glob pattern to watch. If `true` will watch the entire workspace (`**/*`) | `true` |
 | `syncmate.host` | The remote host location (hostname or IP) | `localhost` |
 | `syncmate.dest` | The destination path on the remote | `/` |
 | `syncmate.user` | The username to rsync with | `$(whoami)` |

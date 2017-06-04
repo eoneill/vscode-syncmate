@@ -1,9 +1,14 @@
 // simple logger
-function Logger(outputChannel) {
+function Logger(outputChannel, verbose) {
   this.outputChannel = outputChannel;
+  this.verbose = verbose;
 }
 
 function log(message, severity) {
+  // only log error messages unless verbose
+  if (!this.verbose && severity !== 'error') {
+    return;
+  }
   if (this.outputChannel && message) {
     const prefix = `[${severity.toUpperCase()}] `;
     message = message.replace(/(^|\n)/g, `$1${prefix}`);
