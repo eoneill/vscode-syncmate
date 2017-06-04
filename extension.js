@@ -195,9 +195,12 @@ exports.activate = function activate(context) {
     function promptToReload() {
       vscode.window.showInformationMessage('SyncMate will be enabled when you reload VS Code. Would you like to reload it now?', {
         title: 'Reload'
-      }).then(() => {
-        // they do, so reload!
-        vscode.commands.executeCommand('workbench.action.reloadWindow');
+      }).then((ok) => {
+        // if they approve...
+        if (ok) {
+          // reload!
+          vscode.commands.executeCommand('workbench.action.reloadWindow');
+        }
       });
     }
 
@@ -205,17 +208,21 @@ exports.activate = function activate(context) {
       // warn user that syncmate is disabled and ask if they want to enable it
       vscode.window.showWarningMessage(`SyncMate is not enabled. Do you want to enable it?`, {
         title: 'Enable'
-      }).then(() => {
-        // they do, so update `syncmate.enabled` in the config
-        config.update('enabled', true).then(() => {
-          // and now ask the user if they want to reload
-          promptToReload();
-        });
+      }).then((ok) => {
+        // if they approve
+        if (ok) {
+          // update `syncmate.enabled` in the config
+          config.update('enabled', true).then(() => {
+            // and now ask the user if they want to reload
+            promptToReload();
+          });
+        }
       });
     }
 
     ['syncOpenFiles', 'syncProject', 'syncDirectory'].forEach((command) => {
       context.subscriptions.push(vscode.commands.registerCommand(`syncmate.${command}`, () => {
+        const config = vscode.workspace.getConfiguration('syncmate');
         // if it's enabled now, we must reload
         if (config.enabled) {
           promptToReload();
