@@ -14,8 +14,8 @@ A simple rsync extensions for VSCode. Inspired by [`SyncMate` for TextMate](http
 | Setting | Description | Default |
 |---------|-------------|---------|
 | `syncmate.enabled` | Whether or not this extension is enabled | `false` |
-| `syncmate.onSave` | Whether or not to auto-sync on file save | `true` |
-| `syncmate.watch` | Whether or not to watch files. Optionally, set a glob pattern to watch. If `true` will watch the entire workspace (`**/*`) | `true` |
+| `syncmate.watch` | Whether or not to auto-sync files on change. Optionally, set a glob pattern to watch. If `true` will watch the entire workspace (`**/*`) | `true` |
+| `syncmate.onSave` | Whether or not to auto-sync on file save. If `watch` mode is enabled, `onSave` is ignored and the watcher is used instead. | `true` |
 | `syncmate.host` | The remote host location (hostname or IP) | `localhost` |
 | `syncmate.dest` | The destination path on the remote | `/` |
 | `syncmate.user` | The username to rsync with | `$(whoami)` |
@@ -34,6 +34,8 @@ A simple rsync extensions for VSCode. Inspired by [`SyncMate` for TextMate](http
 | `syncmate.syncProject` | Sync the entire project |
 | `syncmate.syncDirectory` | Sync an individual directory |
 
-## Debugging
+## Debugging / Troubleshooting
 
 Set `syncmate.verbose` to `true` to see additional debugging details. You might have to pass additional rsync flags (`syncmate.flags`) to meet your needs.
+
+If you're working in a project that has a lot of file system events (e.g. a broccoli build), you might want to disable the watcher (`syncmate.watch`).
