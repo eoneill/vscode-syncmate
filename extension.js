@@ -41,6 +41,12 @@ exports.activate = function activate(context) {
     // create SyncMate instance
     const syncMate = new SyncMate(config, rootPath, log);
 
+    function setStatus(message) {
+      if (message) {
+        vscode.window.setStatusBarMessage(`SyncMate: ${message}`, 2000);
+      }
+    }
+
     // main function for syncing everything via SyncMate instance
     function syncDocuments(documents) {
       // exit if no documents passed in or we're paused all paused
@@ -103,7 +109,9 @@ exports.activate = function activate(context) {
         return true;
       }).map((document) => {
         // map to relative path
-        return vscode.workspace.asRelativePath(document.uri.fsPath) || './'; // ./ for syncProject
+        // NOTE: need to use path.relative instead of workspace.asRelativePath
+        //  because asRelativePath returns an absolute path for when fsPath == rootPath
+        return path.relative(rootPath, document.uri.fsPath) || './'; // ./ for syncProject
       });
 
       // no sources? exit
@@ -111,56 +119,41 @@ exports.activate = function activate(context) {
         return;
       }
 
-      // start a progress indicator
-      vscode.window.withProgress({
-        location: vscode.ProgressLocation.Window,
-        title: 'SyncMate'
-      }, (progress) => {
-        // promise that resolves when all syncs are done
-        //  see SyncMate#done
-        return new Promise((resolve) => {
-          // update progress status
-          progress.report({ message: `syncing ${p(sources)}` });
-
-          // self-executing closure so we can retry if needed
-          (function trySync() {
-            // start the sync for the given sources
-            syncMate.sync(sources).then(() => {
-              // sync finished
-              progress.report({ message: `sync completed` });
-            }, () => {
-              // sync failed
-              progress.report({ message: `sync failed` });
-              // if we're not in quiet mode...
-              if (!config.quiet) {
-                // let the user know things didn't work
-                // ask them if they want to retry
-                vscode.window.showErrorMessage(`SyncMate failed to sync all sources (see Output). Would you like to retry?`, {
-                  title: 'Retry'
-                }).then((ok) => {
-                  // if yes...
-                  if (ok) {
-                    // try it again
-                    trySync();
-                  }
-                })
+      // self-executing closure so we can retry if needed
+      (function trySync() {
+        setStatus(`Syncing ${p(sources)}`);
+        // start the sync for the given sources
+        syncMate.sync(sources).then(() => {
+          // sync finished
+          setStatus(`Completed ${p(sources)}`);
+        }, () => {
+          // sync failed
+          setStatus(`Failed`);
+          // if we're not in quiet mode...
+          if (!config.quiet) {
+            // let the user know things didn't work
+            // ask them if they want to retry
+            vscode.window.showErrorMessage(`SyncMate failed to sync all sources (see Output). Would you like to retry?`, {
+              title: 'Retry'
+            }).then((ok) => {
+              // if yes...
+              if (ok) {
+                // try it again
+                trySync();
               }
-            });
-          }());
-
-          // after all syncs are done...
-          syncMate.done().then(() => {
-            log.info('All sync tasks finished');
-            // wait 1 second
-            setTimeout(() => {
-              // then show done
-              progress.report({ message: `Done` });
-              // wait 1 more second before we clear the progress status
-              setTimeout(resolve, 1000);
-            }, 1000);
-
-          });
+            })
+          }
         });
+      }());
+
+      // after all syncs are done...
+      syncMate.done().then(() => {
+        log.info('All sync tasks finished');
+        // wait 1 second
+        setTimeout(() => {
+          // then show done
+          setStatus('Done');
+        }, 1000);
       });
     }
 

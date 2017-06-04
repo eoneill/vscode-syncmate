@@ -2,7 +2,7 @@
   "name": "syncmate",
   "displayName": "SyncMate",
   "description": "A simple rsync extension",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "publisher": "eugeneoneill",
   "license": "MIT",
   "engines": {

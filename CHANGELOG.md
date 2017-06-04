@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.0.6
+
+- Fix Project Syncing
+- Update status messages
+
 ## 0.0.5
 
 Add watch mode.
